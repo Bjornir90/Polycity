@@ -6,12 +6,14 @@ using System;
 public class PathFinder : MonoBehaviour
 {
 
-    List<Node> nodes;
+    public List<Node> nodes;
     // Start is called before the first frame update
     void Start()
     {
+        
         Debug.Log("Start");
         nodes = new List<Node>();
+        /*
         Vector3 pos = new Vector3(0, 0, 0);
         Node node1 = new Node(pos);
         node1.GridPosition = new Vector3(3, 0, 0);
@@ -50,6 +52,7 @@ public class PathFinder : MonoBehaviour
         CreateLink(node7, node8);
 
         Trip result = GetTrip(node1, node8);
+        */
 
     }
 
@@ -85,7 +88,6 @@ public class PathFinder : MonoBehaviour
 
         while (!ContainsAll(nodes, processed))
         {
-
             int min = Int32.MaxValue;
             Node closest = null;
 
@@ -113,9 +115,10 @@ public class PathFinder : MonoBehaviour
             }
             
         }
-
         List<Node> path = new List<Node>();
         path.Add(end);
+
+        Debug.Log("Processed : "+processed.Count);
 
         while (!path[0].Equals(start))
         {
@@ -132,6 +135,16 @@ public class PathFinder : MonoBehaviour
             }
             path.Insert(0, closest);
         }
+
+        Debug.Log("Path contains "+path.Count);
+
+        foreach (var Node in path)
+        {
+            Debug.Log("Node in path "+Node.ToString());
+        }
+
+        throw new Exception("Magic");
+
         List<Vector3> positions = new List<Vector3>();
         foreach (Node node in path)
         {
@@ -150,11 +163,13 @@ public class PathFinder : MonoBehaviour
         node_2.AddLink(_edge);
     }
 
-    public void CreateNode(Vector3 position, Vector3 GridPosition)
+    public Node CreateNode(Vector3 position, Vector3 gridPosition)
     {
-        Node created = new Node(position);
+        Node created = new Node(position, gridPosition);
 
         nodes.Add(created);
+
+        return created;
     }
 
 
@@ -183,9 +198,10 @@ public class Node
     public Vector3 GridPosition { get; set; }
     public List<Edge> Links { get; set; }
 
-    public Node(Vector3 position)
+    public Node(Vector3 position, Vector3 gridPosition)
     {
         Position = position;
+        GridPosition = gridPosition;
         Links = new List<Edge>();
     }
 

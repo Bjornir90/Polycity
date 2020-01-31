@@ -9,11 +9,11 @@ public class GridBehavior : MonoBehaviour
     public GameObject Cursor;
     public GameObject Prefab;
 
-    public int GridSize;
+    public static int GridSize = 10;
 
-    Plane m_Plane;
+    private static Plane m_Plane;
 
-    private Grid grid;
+    public Grid grid;
 
     Vector3Int positionOfLastInstantiation;
     int currentAngle;
@@ -24,6 +24,7 @@ public class GridBehavior : MonoBehaviour
         m_Plane = new Plane(Vector3.up, new Vector3(0, 0, 0));
         currentAngle = 0;
         grid = new Grid();
+        positionOfLastInstantiation = new Vector3Int(0, 10, 0);
     }
 
     void Update()
@@ -40,7 +41,9 @@ public class GridBehavior : MonoBehaviour
             //Get the point that is clicked
             Vector3 hitPoint = ray.GetPoint(enter);
 
-            Vector3Int newObjectPos = new Vector3Int(((int) Math.Floor(hitPoint.x/GridSize))*GridSize+GridSize/2, (int) hitPoint.y, ((int) Math.Floor(hitPoint.z/GridSize))*GridSize+GridSize/2);
+            Vector3Int newObjectPos = new Vector3Int(((int) Math.Floor(hitPoint.x/GridSize))*GridSize+GridSize/2,
+            (int) hitPoint.y,
+            ((int) Math.Floor(hitPoint.z/GridSize))*GridSize+GridSize/2);
 
             //Move your cube GameObject to the point where you clicked
             Cursor.transform.position = newObjectPos;
@@ -49,9 +52,19 @@ public class GridBehavior : MonoBehaviour
             if (Input.GetMouseButton(0) && !positionOfLastInstantiation.Equals(newObjectPos))
             {
                 if(grid.GetCell(newObjectPos) == null){
+
                     Instantiate(Prefab, newObjectPos, Quaternion.Euler(0, currentAngle, 0));
                     positionOfLastInstantiation = newObjectPos;
-                    grid.SetCell(newObjectPos, new Cell(newObjectPos, Prefab, false));
+
+
+                    Vector3Int gridPosition = GetGridIndex(newObjectPos);
+
+                    //Debug.Log("Clicked on "+hitPoint+" grid : "+gridPosition);
+                    grid.SetCell(gridPosition, new Cell(newObjectPos, Prefab, true, newObjectPos, gridPosition));
+                    Debug.Log("Cell created on : "+ gridPosition);
+
+                    grid.CheckAndCreateNode(newObjectPos, gridPosition, true);
+
                 }
             }
         }
@@ -67,4 +80,38 @@ public class GridBehavior : MonoBehaviour
         }
 
     }
+
+    public static Vector3Int GetGridIndex(Vector3 position){
+        Vector3Int gridPosition = new Vector3Int(
+                        (int) Math.Floor((double)position.x/GridSize),
+                        (int) position.y,
+                        (int) Math.Floor((double)position.z/GridSize)
+                        );
+        return gridPosition;
+
+    }
+
+    public static Vector3Int GetWorldGridPosition(Vector3 position){
+        Vector3Int result = new Vector3Int(((int) Math.Floor(position.x/GridSize))*GridSize+GridSize/2,
+            (int) position.y,
+            ((int) Math.Floor(position.z/GridSize))*GridSize+GridSize/2);
+        return result;
+    }
+
+    public static Vector3 GetOnPlaneClick() {
+        //Create a ray from the Mouse click position
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        //Initialise the enter variable
+        float enter = 0.0f;
+
+        if (m_Plane.Raycast(ray, out enter))
+        {
+            //Get the point that is clicked
+            Vector3 hitPoint = ray.GetPoint(enter);
+            return hitPoint;
+        }
+        throw new InvalidOperationException("The user did not click on the plane");
+    }
+
 }
