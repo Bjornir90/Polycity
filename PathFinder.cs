@@ -1,12 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 public class PathFinder : MonoBehaviour
 {
 
     public List<Node> nodes;
+
+    public GameObject TextObject;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -76,21 +80,28 @@ public class PathFinder : MonoBehaviour
     {
         // Djikstra
 
+        //Debug.Log("Looking for trip between "+start.ToString()+" and "+end.ToString());
+
         Dictionary<Node, int> weights = new Dictionary<Node, int>();
         List<Node> processed = new List<Node>();
 
-
         foreach(Node node in nodes)
         {
+            // Debug : drw line for every link known
+            foreach (Edge edge in node.Links)
+            {
+                Debug.DrawLine(edge.Nodes[0].Position, edge.Nodes[1].Position, Color.red, 100.0f, false);
+                DrawSquare(edge.Nodes[1].Position, 1.0f, Color.blue);
+                
+            }
             weights.Add(node, Int32.MaxValue);
         }
         weights[start] = 0;
-
         while (!ContainsAll(nodes, processed))
         {
             int min = Int32.MaxValue;
             Node closest = null;
-
+            
             foreach(Node node in nodes)
             {
                 if (!processed.Contains(node))
@@ -110,16 +121,23 @@ public class PathFinder : MonoBehaviour
                 Node neighbor = edge.GetOtherNode(closest);
                 if (!processed.Contains(neighbor))
                 {
+                    Debug.Log("LONGUEUR : " + edge.Length);
                     weights[neighbor] = Math.Min(weights[neighbor], weights[closest] + edge.Length);
                 }
             }
-            
         }
+
         List<Node> path = new List<Node>();
         path.Add(end);
 
-        Debug.Log("Processed : "+processed.Count);
+        foreach(Node node in processed){
+                Vector3 textPosition = node.Position+new Vector3(0, 1, 0);
+                GameObject textInstance = Instantiate(TextObject, textPosition, Quaternion.Euler(0, 0, 0));
+                TextMesh text = textInstance.GetComponent<TextMesh>();
+                text.text = weights[node].ToString();
+            }
 
+        Debug.Log("Processed : "+processed.Count);
         while (!path[0].Equals(start))
         {
             int min = Int32.MaxValue;
@@ -127,10 +145,10 @@ public class PathFinder : MonoBehaviour
             foreach (Edge edge in path[0].Links)
             {
                 Node neighbor = edge.GetOtherNode(path[0]);
-                if (weights[neighbor] < min)
+                if (weights[neighbor] < min && !path.Contains(neighbor))
                 {
                     closest = neighbor;
-                    min = edge.Length;
+                    min = weights[neighbor];
                 }
             }
             path.Insert(0, closest);
@@ -138,17 +156,9 @@ public class PathFinder : MonoBehaviour
 
         Debug.Log("Path contains "+path.Count);
 
-        foreach (var Node in path)
-        {
-            Debug.Log("Node in path "+Node.ToString());
-        }
-
-        throw new Exception("Magic");
-
         List<Vector3> positions = new List<Vector3>();
         foreach (Node node in path)
         {
-            Debug.Log("Node : (" + node.GridPosition.x + ", " + node.GridPosition.y + ")");
             positions.Add(node.Position);
         }
         return new Trip(positions, weights[end]);
@@ -157,8 +167,9 @@ public class PathFinder : MonoBehaviour
 
     public void CreateLink(Node node_1, Node node_2)
     {
-        int length = (int) (Math.Abs(node_2.GridPosition.x - node_1.GridPosition.x) + Math.Abs(node_2.GridPosition.y - node_1.GridPosition.y));
+        int length = (int) (Math.Abs(node_2.GridPosition.x - node_1.GridPosition.x) + Math.Abs(node_2.GridPosition.z - node_1.GridPosition.z));
         Edge _edge = new Edge(length, new List<Node>() { node_1, node_2 });
+        Debug.Log(_edge);
         node_1.AddLink(_edge);
         node_2.AddLink(_edge);
     }
@@ -170,6 +181,17 @@ public class PathFinder : MonoBehaviour
         nodes.Add(created);
 
         return created;
+    }
+
+    public void DrawSquare(Vector3 center, float radius, Color color, float duration=100.0f){
+        Vector3 luCorner = new Vector3(center.x - radius/2, center.y, center.z + radius/2);
+        Vector3 ruCorner = new Vector3(center.x + radius/2, center.y, center.z + radius/2);
+        Vector3 lbCorner = new Vector3(center.x - radius/2, center.y, center.z - radius/2);
+        Vector3 rbCorner = new Vector3(center.x + radius/2, center.y, center.z - radius/2);
+        Debug.DrawLine(luCorner, ruCorner, color, duration);
+        Debug.DrawLine(ruCorner, rbCorner, color, duration);
+        Debug.DrawLine(rbCorner, lbCorner, color, duration);
+        Debug.DrawLine(lbCorner, luCorner, color, duration);
     }
 
 
@@ -190,6 +212,10 @@ public class Edge
     {
         return (Nodes[0].Equals(node)) ? Nodes[1] : Nodes[0];
     }
+
+    public override string ToString(){
+        return Nodes[0].ToSmallString()+ ", "+Nodes[1].ToSmallString();
+    }
 }
 
 public class Node
@@ -207,12 +233,42 @@ public class Node
 
     public void AddLink(Edge edge)
     {
+        Debug.Log(ToString()+" Adding link to : "+edge.GetOtherNode(this));
+
         Links.Add(edge);
     }
 
     public override string ToString()
     {
-        return "Node Position : " + GridPosition.x + " : " + GridPosition.y;
+        return "Node : " + GridPosition.x + " : " + GridPosition.z;
+    }
+
+    public string ToSmallString()
+    {
+        return "(" + GridPosition.x + ", " + GridPosition.z + ")";
+    }
+
+    public string ToDetailedString(){
+        string res = this.ToString();
+        foreach (Edge edge in Links)
+        {
+            res += "\n Lien : " + edge.ToString();
+        }
+        return res;
+    }
+
+    public override bool Equals(object obj){
+        //Check for null and compare run-time types.
+        if ((obj == null) || ! this.GetType().Equals(obj.GetType())) 
+        {
+            return false;
+        }
+        Node n = (Node) obj;
+        return (Position == n.Position) && (GridPosition == n.GridPosition);
+    }
+
+    public override int GetHashCode(){
+        return (int) (GridPosition.x*1000+GridPosition.z);
     }
 
 }

@@ -34,6 +34,7 @@ public class CarBehavior : MonoBehaviour
         start = new Vector3(0, 1000, 0);
         end = new Vector3(0, 1000, 0);
         arrived = false;
+        currentDestination = new Vector3(0, 1000, 0);
     }
 
     // Update is called once per frame
@@ -42,34 +43,39 @@ public class CarBehavior : MonoBehaviour
         if(arrived)
             return;
 
-
         if(start.y == 1000){
-            if(Input.GetMouseButton(1)){
-                start = GridBehavior.GetOnPlaneClick();
+            if(Input.GetMouseButtonDown(1)){
+                start = GridBehavior.GetWorldGridPosition(GridBehavior.GetOnPlaneClick());
+                Debug.Log("Starting node : "+start.ToString());
             }
-        } else if(end.y == 1000){
-            if(Input.GetMouseButton(1)){
-                end = GridBehavior.GetOnPlaneClick();
+        } else if(end.y == 1000 && start.y != 1000){
+            if(Input.GetMouseButtonDown(1)){
+                end = GridBehavior.GetWorldGridPosition(GridBehavior.GetOnPlaneClick());
+                Debug.Log("Ending node : "+end.ToString());
             }
         }
         if(trip == null){
             if(Input.GetKeyDown("j")){
                 trip = GameObject.FindWithTag("GridManagerTag").GetComponent<GridBehavior>().grid.GetTrip(start, end);
+                Debug.Log("Trip length : "+trip.Length);
             } else {
                 return;
             }
         }
 
-        if(currentDestination == null){
+        if(currentDestination.y == 1000){
             currentDestination = trip.GetNextNode();
-            transform.SetPositionAndRotation(start, Quaternion.Euler(0,0,0));
+            Debug.Log(currentDestination);
+            //throw new Exception(currentDestination.ToString());
+            //transform.SetPositionAndRotation(start, Quaternion.Euler(0,0,0));
+            transform.position = currentDestination;
         }
 
         Vector3 carPosition = transform.position;
 
         if(Math.Abs(carPosition.x - currentDestination.x) < Speed && Math.Abs(carPosition.z - currentDestination.z) < Speed){
             
-            Debug.Log("Startoing trup");
+            Debug.Log("Starting trip");
             transform.position = currentDestination;
             if(trip.isFinal()){
                 arrived = true;
@@ -87,8 +93,10 @@ public class CarBehavior : MonoBehaviour
             //Destination is towards positive Z 
             if(carPosition.z - currentDestination.z < 0){
                 transform.Translate(0, 0, Speed, Space.World);
+                transform.localEulerAngles = new Vector3(90, 0, 90);
             } else {
                 transform.Translate(0, 0, -Speed, Space.World);
+                transform.localEulerAngles = new Vector3(90, 180, 90);
             }
 
         } else {
@@ -96,8 +104,10 @@ public class CarBehavior : MonoBehaviour
             //Destination is towards positive X
             if(carPosition.x - currentDestination.x < 0){
                 transform.Translate(Speed, 0, 0, Space.World);
+                transform.localEulerAngles = new Vector3(90, 90, 90);
             } else {
                 transform.Translate(-Speed, 0, 0, Space.World);
+                transform.localEulerAngles = new Vector3(90, -90, 90);
             }
 
         }

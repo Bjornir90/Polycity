@@ -42,8 +42,15 @@ public class Grid {
         return false;
     }
 
+    public bool IsNode(Vector3Int vector){
+        Cell currentCell = GetCell(vector);
+        if(currentCell != null && currentCell.IsNode){
+            return true;
+        }
+        return false;
+    }
+
     public void CheckAndCreateNode(Cell cell){
-        Debug.Log("Checking Neighbor for node");
         if(cell == null)
             return;
         CheckAndCreateNode(cell.Position, cell.GridPosition, false);
@@ -51,7 +58,6 @@ public class Grid {
 
     public void CheckAndCreateNode(Vector3 position, Vector3Int gridPosition, bool checkNeighbors){
         bool neighborOnX = false, neighborOnZ = false;
-        Debug.Log("Trying to create node on "+gridPosition);
 
         if(GetCell(gridPosition) != null && GetCell(gridPosition).IsNode)
             return;
@@ -82,7 +88,30 @@ public class Grid {
 
     }
 
-    public void CheckAndCreateLinks(Vector3Int gridPosition){
+    public void CheckAndCreateLinks(Vector3Int gridPosition, bool checkNeighbors){
+
+        Cell origin = GetCell(gridPosition);
+        if(checkNeighbors){
+
+                for(int i = -1; i<2; i+=2){
+
+                    Vector3Int vec3X = gridPosition;
+                    vec3X.x += i;
+                    if(IsNode(vec3X)){
+                        CheckAndCreateLinks(vec3X, false);
+                    }
+
+                    Vector3Int vec3Z = gridPosition;
+                    vec3Z.z += i;
+                    if(IsNode(vec3Z)){
+                        CheckAndCreateLinks(vec3Z, false);
+                    }
+
+                }
+        }
+        
+        if(!origin.IsNode)
+            return;
 
         for(int i=-1; i<2; i+=2){
 
@@ -92,7 +121,7 @@ public class Grid {
 
             while(IsRoad(currentPos)){
                 if(currentCell.IsNode){
-                    CreateLink(GetCell(gridPosition).Node, currentCell.Node);
+                    CreateLink(origin.Node, currentCell.Node);
                     break;
                 }
                 currentPos.x += i;
@@ -105,7 +134,7 @@ public class Grid {
 
             while(IsRoad(currentPos)){
                 if(currentCell.IsNode){
-                    CreateLink(GetCell(gridPosition).Node, currentCell.Node);
+                    CreateLink(origin.Node, currentCell.Node);
                     break;
                 }
                 currentPos.z += i;
@@ -119,21 +148,22 @@ public class Grid {
         PathFinder pathFinder = GameObject.FindWithTag(RoadManagerTag).GetComponent<PathFinder>();
         Node newNode = pathFinder.CreateNode(position, gridPosition);
         GetCell(gridPosition).Node = newNode;
-        CheckAndCreateLinks(gridPosition);
-        Debug.Log("Created Node on cell "+gridPosition);
+        //CheckAndCreateLinks(gridPosition);
     }
 
     private void CreateLink(Node node1, Node node2){
         PathFinder pathFinder = GameObject.FindWithTag(RoadManagerTag).GetComponent<PathFinder>();
         pathFinder.CreateLink(node1, node2);
-        Debug.Log("Create link between : (" +node1.GridPosition.x + ", " + node1.GridPosition.z + ") and ("+node2.GridPosition.x + ", " + node2.GridPosition.z + ")");
+        Debug.Log("Created link between : (" +node1.GridPosition.x + ", " + node1.GridPosition.z + ") and ("+node2.GridPosition.x + ", " + node2.GridPosition.z + ")");
     }
 
     public Trip GetTrip(Vector3 start, Vector3 end){
+
         Vector3Int startGridPosition = GridBehavior.GetWorldGridPosition(start);
         Vector3Int endGridPosition = GridBehavior.GetWorldGridPosition(end);
         Vector3Int startGridIndex = GridBehavior.GetGridIndex(startGridPosition);
         Vector3Int endGridIndex = GridBehavior.GetGridIndex(endGridPosition);
+
         Node startNode=null, endNode=null;
         List<Node> startNodes=null, endNodes=null;
         //Debug.Log("Grid pos : "+ startGridPosition + ", grid index : "+ startGridIndex+ ", Raw position : "+ start);
@@ -148,54 +178,77 @@ public class Grid {
 
         // Find best trip
         PathFinder pathFinder = GameObject.FindWithTag(RoadManagerTag).GetComponent<PathFinder>();
+
+        /*Debug.Log("Nodes in pathfinder :");
+
+        foreach(Node node in pathFinder.nodes){
+            Debug.Log("\t- "+node.ToDetailedString());
+        }*/
+
         Trip res = null;
-        if(startNode!=null)
+
+        if(startNode!=null){
+
             if(endNode!=null){
                 return pathFinder.GetTrip(startNode, endNode);
-            }
-            else{
+            } else {
+
                 CreateNode(end, endGridIndex);
                 endNode = GetCell(endGridIndex).Node;
+
                 for(int i =0; i<endNodes.Count; i++){
                     CreateLink(endNodes[i], endNode);
                 }
+
                 res = pathFinder.GetTrip(startNode, endNode);
+
                 foreach(Edge link in endNode.Links){
                     for(int i=0; i<endNodes.Count; i++){
                         endNodes[i].Links.Remove(link);
                     }
                 }
+
                 pathFinder.nodes.Remove(endNode);
+
             }
-        else{
+        }else{
+
             CreateNode(start, startGridIndex);
             startNode = GetCell(startGridIndex).Node;
+
             for(int i =0; i<startNodes.Count; i++){
                 CreateLink(startNodes[i], startNode);
             }
+
             if(endNode!=null){
                 res = pathFinder.GetTrip(startNode, endNode);
-            }
-            else{
+            } else {
+
                 CreateNode(end, endGridIndex);
                 endNode = GetCell(endGridIndex).Node;
+
                 for(int i =0; i<endNodes.Count; i++){
                     CreateLink(endNodes[i], endNode);
                 }
+
                 res = pathFinder.GetTrip(startNode, endNode);
+
                 foreach(Edge link in endNode.Links){
                     for(int i=0; i<endNodes.Count; i++){
                         endNodes[i].Links.Remove(link);
                     }
                 }
+
                 pathFinder.nodes.Remove(endNode);
             }
+
             foreach(Edge link in startNode.Links){
                     for(int i=0; i<startNodes.Count; i++){
                         startNodes[i].Links.Remove(link);
                     }
                 }
             pathFinder.nodes.Remove(startNode);
+
         }
         return res;
     }

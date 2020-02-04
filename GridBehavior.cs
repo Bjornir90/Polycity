@@ -61,9 +61,10 @@ public class GridBehavior : MonoBehaviour
 
                     //Debug.Log("Clicked on "+hitPoint+" grid : "+gridPosition);
                     grid.SetCell(gridPosition, new Cell(newObjectPos, Prefab, true, newObjectPos, gridPosition));
-                    Debug.Log("Cell created on : "+ gridPosition);
 
                     grid.CheckAndCreateNode(newObjectPos, gridPosition, true);
+
+                    grid.CheckAndCreateLinks(gridPosition, true);
 
                 }
             }
