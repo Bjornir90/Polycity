@@ -87,13 +87,15 @@ public class PathFinder : MonoBehaviour
 
         foreach(Node node in nodes)
         {
+            /*
             // Debug : drw line for every link known
             foreach (Edge edge in node.Links)
             {
-                Debug.DrawLine(edge.Nodes[0].Position, edge.Nodes[1].Position, Color.red, 100.0f, false);
+                Debug.DrawLine(edge.Nodes[0].Position, edge.Nodes[1].Position, Color.red, 10.0f, false);
                 DrawSquare(edge.Nodes[1].Position, 1.0f, Color.blue);
                 
             }
+            */
             weights.Add(node, Int32.MaxValue);
         }
         weights[start] = 0;
@@ -116,6 +118,10 @@ public class PathFinder : MonoBehaviour
 
             processed.Add(closest);
 
+            if(closest == null){
+                throw new Exception("No node closest available");
+            }
+
             foreach(Edge edge in closest.Links)
             {
                 Node neighbor = edge.GetOtherNode(closest);
@@ -130,14 +136,14 @@ public class PathFinder : MonoBehaviour
         List<Node> path = new List<Node>();
         path.Add(end);
 
+/*
         foreach(Node node in processed){
                 Vector3 textPosition = node.Position+new Vector3(0, 1, 0);
                 GameObject textInstance = Instantiate(TextObject, textPosition, Quaternion.Euler(0, 0, 0));
                 TextMesh text = textInstance.GetComponent<TextMesh>();
                 text.text = weights[node].ToString();
             }
-
-        Debug.Log("Processed : "+processed.Count);
+*/ 
         while (!path[0].Equals(start))
         {
             int min = Int32.MaxValue;
@@ -275,7 +281,7 @@ public class Node
 
 public class Trip
 {
-    private List<Vector3> Nodes;
+    public List<Vector3> Nodes;
     public int Length {get; set;}
     private int Index;
 

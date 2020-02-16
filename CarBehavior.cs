@@ -12,7 +12,8 @@ public class CarBehavior : MonoBehaviour
 
     private bool arrived;
 
-    private Vector3 start, end;
+    public Vector3 start {get; set;} 
+    public Vector3 end {get; set;}
 
     private Trip trip;
     // Start is called before the first frame update
@@ -40,9 +41,6 @@ public class CarBehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(arrived)
-            return;
-
         if(start.y == 1000){
             if(Input.GetMouseButtonDown(1)){
                 start = GridBehavior.GetWorldGridPosition(GridBehavior.GetOnPlaneClick());
@@ -63,6 +61,21 @@ public class CarBehavior : MonoBehaviour
             }
         }
 
+        Vector3 previousPosition = new Vector3(0, 1000, 0);
+        foreach (var node in trip.Nodes){
+            if(previousPosition == new Vector3(0, 1000, 0)){
+                previousPosition = node;
+                continue;
+            }
+
+            Debug.DrawLine(previousPosition, node, Color.red, trip.Length);
+            previousPosition = node;
+
+        }
+        {
+            
+        }
+
         if(currentDestination.y == 1000){
             currentDestination = trip.GetNextNode();
             Debug.Log(currentDestination);
@@ -74,17 +87,16 @@ public class CarBehavior : MonoBehaviour
         Vector3 carPosition = transform.position;
 
         if(Math.Abs(carPosition.x - currentDestination.x) < Speed && Math.Abs(carPosition.z - currentDestination.z) < Speed){
-            
-            Debug.Log("Starting trip");
+
             transform.position = currentDestination;
             if(trip.isFinal()){
                 arrived = true;
+                Destroy(gameObject);
                 return;
             }
 
             currentDestination = trip.GetNextNode();
             return;
-
         }
 
         //X is the same for the car and the destination : we move on Z
@@ -112,5 +124,12 @@ public class CarBehavior : MonoBehaviour
 
         }
 
+    }
+
+
+    public void CreateTrip(){
+        Debug.Log("Start : " + start + ", End : " + end);
+        if(trip == null)
+            trip = GameObject.FindWithTag("GridManagerTag").GetComponent<GridBehavior>().grid.GetTrip(start, end);
     }
 }
