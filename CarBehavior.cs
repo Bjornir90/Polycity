@@ -6,11 +6,15 @@ using System;
 public class CarBehavior : MonoBehaviour
 {
 
-    public float Speed;
+    public const int MAX_WAIT_LENGTH = 120; // minutes
+    public float ActualSpeed; // max speed in m.s-1
+
+    private float Speed;
 
     private Vector3 currentDestination;
 
-    private bool arrived;
+    private DateTime returnDate;
+    private bool standBy;
 
     public Vector3 start {get; set;} 
     public Vector3 end {get; set;}
@@ -34,13 +38,16 @@ public class CarBehavior : MonoBehaviour
         */
         start = new Vector3(0, 1000, 0);
         end = new Vector3(0, 1000, 0);
-        arrived = false;
+        standBy = false;
         currentDestination = new Vector3(0, 1000, 0);
+        Speed = ActualSpeed*TimeBehaviour.TimeSpeed;
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Entering trip manually
+        /*
         if(start.y == 1000){
             if(Input.GetMouseButtonDown(1)){
                 start = GridBehavior.GetWorldGridPosition(GridBehavior.GetOnPlaneClick());
@@ -58,6 +65,20 @@ public class CarBehavior : MonoBehaviour
                 Debug.Log("Trip length : "+trip.Length);
             } else {
                 return;
+            }
+        }
+        */
+
+        if(trip == null)
+            return;
+
+        if(standBy){
+            if(TimeBehaviour.Date < returnDate)
+                return;
+            else
+            {
+                standBy = false;
+                gameObject.transform.localScale = new Vector3(1, 1, 1); // A verifier...
             }
         }
 
@@ -90,8 +111,18 @@ public class CarBehavior : MonoBehaviour
 
             transform.position = currentDestination;
             if(trip.isFinal()){
-                arrived = true;
-                Destroy(gameObject);
+                if(trip.isReturnTrip()){
+                    Destroy(gameObject);
+                    return;
+                }
+                standBy = true;
+                Random rnd = new Random();
+                int minToWait = rnd.Next(5, MAX_WAIT_LENGTH);
+                DateTime _returnDate = TimeBehaviour.Date;
+                _returnDate.AddMinutes(minToWait);
+                returnDate = _returnDate;
+                gameObject.transform.localScale = new Vector3(0, 0, 0); // Makes the car disappear
+                trip = trip.GetReturnTrip();
                 return;
             }
 

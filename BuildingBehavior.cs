@@ -53,6 +53,9 @@ public class BuildingBehavior : MonoBehaviour
         if(nearestRoadPosition == new Vector3(0, 0, 0))
             return;
         
+        if(type == BuildingType.Commercial)
+            return;
+        
         GameObject carInstance = Instantiate(Prefab, nearestRoadPosition, Quaternion.Euler(0, 0, 0));
         CarBehavior carBehavior = carInstance.GetComponent<CarBehavior>();
         carBehavior.start = nearestRoadPosition;

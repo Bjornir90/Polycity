@@ -285,11 +285,14 @@ public class Trip
     public int Length {get; set;}
     private int Index;
 
+    public bool isReturnTrip {get; set;}
+
     public Trip(List<Vector3> Nodes, int Length)
     {
         this.Nodes = Nodes;
         this.Length = Length;
         Index = 0;
+        isReturnTrip = false;
     }
 
     public Vector3 GetNextNode()
@@ -302,5 +305,13 @@ public class Trip
     public bool isFinal()
     {
         return Index == Nodes.Count;
+    }
+
+    public Trip GetReturnTrip()
+    {
+        List<Vector3> reversed = new List<Vector3>(Nodes).Reverse();
+        Trip res = new Trip(reversed, Length);
+        res.isReturnTrip = true;
+        return res;
     }
 }
