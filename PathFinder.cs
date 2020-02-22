@@ -309,7 +309,8 @@ public class Trip
 
     public Trip GetReturnTrip()
     {
-        List<Vector3> reversed = new List<Vector3>(Nodes).Reverse();
+        List<Vector3> reversed = new List<Vector3>(Nodes);
+        reversed.Reverse();
         Trip res = new Trip(reversed, Length);
         res.isReturnTrip = true;
         return res;

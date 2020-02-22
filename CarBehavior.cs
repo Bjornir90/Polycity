@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+
 public class CarBehavior : MonoBehaviour
 {
 
@@ -111,12 +112,12 @@ public class CarBehavior : MonoBehaviour
 
             transform.position = currentDestination;
             if(trip.isFinal()){
-                if(trip.isReturnTrip()){
+                if(trip.isReturnTrip){
                     Destroy(gameObject);
                     return;
                 }
                 standBy = true;
-                Random rnd = new Random();
+                System.Random rnd = new System.Random();
                 int minToWait = rnd.Next(5, MAX_WAIT_LENGTH);
                 DateTime _returnDate = TimeBehaviour.Date;
                 _returnDate.AddMinutes(minToWait);
