@@ -98,6 +98,9 @@ public class PathFinder : MonoBehaviour
             */
             weights.Add(node, Int32.MaxValue);
         }
+
+        int tourNb = 0;
+
         weights[start] = 0;
         while (!ContainsAll(nodes, processed))
         {
@@ -115,7 +118,7 @@ public class PathFinder : MonoBehaviour
                     }
                 }
             }
-
+            //Debug.Log("Tour n° : " + tourNb++);
             processed.Add(closest);
 
             if(closest == null){
@@ -127,7 +130,7 @@ public class PathFinder : MonoBehaviour
                 Node neighbor = edge.GetOtherNode(closest);
                 if (!processed.Contains(neighbor))
                 {
-                    Debug.Log("LONGUEUR : " + edge.Length);
+                    //Debug.Log("LONGUEUR : " + edge.Length);
                     weights[neighbor] = Math.Min(weights[neighbor], weights[closest] + edge.Length);
                 }
             }
@@ -160,7 +163,7 @@ public class PathFinder : MonoBehaviour
             path.Insert(0, closest);
         }
 
-        Debug.Log("Path contains "+path.Count);
+        //Debug.Log("Path contains "+path.Count);
 
         List<Vector3> positions = new List<Vector3>();
         foreach (Node node in path)
@@ -175,7 +178,7 @@ public class PathFinder : MonoBehaviour
     {
         int length = (int) (Math.Abs(node_2.GridPosition.x - node_1.GridPosition.x) + Math.Abs(node_2.GridPosition.z - node_1.GridPosition.z));
         Edge _edge = new Edge(length, new List<Node>() { node_1, node_2 });
-        Debug.Log(_edge);
+        //Debug.Log(_edge);
         node_1.AddLink(_edge);
         node_2.AddLink(_edge);
     }
@@ -239,7 +242,7 @@ public class Node
 
     public void AddLink(Edge edge)
     {
-        Debug.Log(ToString()+" Adding link to : "+edge.GetOtherNode(this));
+        //Debug.Log(ToString()+" Adding link to : "+edge.GetOtherNode(this));
 
         Links.Add(edge);
     }
@@ -285,11 +288,14 @@ public class Trip
     public int Length {get; set;}
     private int Index;
 
+    public bool isReturnTrip {get; set;}
+
     public Trip(List<Vector3> Nodes, int Length)
     {
         this.Nodes = Nodes;
         this.Length = Length;
         Index = 0;
+        isReturnTrip = false;
     }
 
     public Vector3 GetNextNode()
@@ -302,5 +308,14 @@ public class Trip
     public bool isFinal()
     {
         return Index == Nodes.Count;
+    }
+
+    public Trip GetReturnTrip()
+    {
+        List<Vector3> reversed = new List<Vector3>(Nodes);
+        reversed.Reverse();
+        Trip res = new Trip(reversed, Length);
+        res.isReturnTrip = true;
+        return res;
     }
 }

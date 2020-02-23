@@ -6,11 +6,17 @@ using System;
 public class CarBehavior : MonoBehaviour
 {
 
-    public float Speed;
+    public const int MAX_WAIT_LENGTH = 60; // minutes
+    public float ActualSpeed; // max speed in m.s-1
+
+    private float Speed;
 
     private Vector3 currentDestination;
 
-    private bool arrived;
+    private DateTime returnDate;
+    private bool standBy;
+
+    private TimeBehavior TimeManager;
 
     public Vector3 start {get; set;} 
     public Vector3 end {get; set;}
@@ -32,15 +38,21 @@ public class CarBehavior : MonoBehaviour
 
         currentDestination = trip.GetNextNode();
         */
+        ActualSpeed = 0.01f;
+        TimeManager = GameObject.FindWithTag("TimeManagerTag").GetComponent<TimeBehavior>();
         start = new Vector3(0, 1000, 0);
         end = new Vector3(0, 1000, 0);
-        arrived = false;
+        standBy = false;
         currentDestination = new Vector3(0, 1000, 0);
+        Speed = ActualSpeed*TimeManager.TimeSpeed;
+        Debug.Log("Vitesse : " + Speed);
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Entering trip manually
+        /*
         if(start.y == 1000){
             if(Input.GetMouseButtonDown(1)){
                 start = GridBehavior.GetWorldGridPosition(GridBehavior.GetOnPlaneClick());
@@ -60,7 +72,28 @@ public class CarBehavior : MonoBehaviour
                 return;
             }
         }
+        */
 
+        if(trip == null)
+            return;
+
+        if(standBy){
+            if(TimeManager.Date < returnDate)
+                return;
+            else
+            {
+                standBy = false;
+                Debug.Log("StandBy False");
+                gameObject.GetComponent<Renderer>().enabled = true;
+                transform.position.y = 0;
+            }
+        }
+
+        /* int nodenb=0;
+        foreach(Vector3 posi in trip.Nodes){
+            Debug.Log("Node "+ ++nodenb + " : " + posi);
+        }
+ */
         Vector3 previousPosition = new Vector3(0, 1000, 0);
         foreach (var node in trip.Nodes){
             if(previousPosition == new Vector3(0, 1000, 0)){
@@ -90,8 +123,18 @@ public class CarBehavior : MonoBehaviour
 
             transform.position = currentDestination;
             if(trip.isFinal()){
-                arrived = true;
-                Destroy(gameObject);
+                if(trip.isReturnTrip){
+                    Destroy(gameObject);
+                    return;
+                }
+                standBy = true;
+                Debug.Log("StandBy True");
+                System.Random rnd = new System.Random();
+                int minToWait = rnd.Next(5, MAX_WAIT_LENGTH);
+                returnDate = TimeManager.Date.AddMinutes(minToWait);
+                gameObject.GetComponent<Renderer>().enabled = false; // Makes the car disappear
+                transform.position.y = 1000;
+                trip = trip.GetReturnTrip();
                 return;
             }
 
