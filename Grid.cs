@@ -335,6 +335,8 @@ public class Cell {
     public GameObject Content {get;}
     public bool IsRoad {get;}
 
+    public bool hasLamp {get; set;}
+
     public Vector3 Position {get;}
     public Vector3Int GridPosition {get;}
 
@@ -361,6 +363,7 @@ public class Cell {
         GridPosition = gridPosition;
         Content = content;
         IsRoad = isRoad;
+        hasLamp = false;
     }
 
     public Cell(Vector3Int coordinates, GameObject content, bool isRoad, Vector3 position, Vector3Int gridPosition) : this(new Coords(coordinates), content, isRoad, position, gridPosition){

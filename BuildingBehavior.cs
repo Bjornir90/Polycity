@@ -6,7 +6,7 @@ public class BuildingBehavior : MonoBehaviour
 {
     public Vector3 nearestRoadPosition;
 
-    public const int MIN_CAR_NUMBER = 3, MAX_CAR_NUMBER = 12;
+    public const int MIN_CAR_NUMBER = 3, MAX_CAR_NUMBER = 5;
 
     public const int MAX_RESIDENTIAL_INTEREST = 5, MAX_COMMERCIAL_INTEREST = 40;
 
@@ -19,7 +19,7 @@ public class BuildingBehavior : MonoBehaviour
     private float timeOfLastSpawn;
 
     public GameBehavior gameManager;
-    public const float SPAWN_INTERVAL = 5f, SPAWN_CHANCE = 0.001f;
+    public const float SPAWN_INTERVAL = 5f, SPAWN_CHANCE = 0.01f;
 
     private GameObject Prefab;
 
@@ -27,6 +27,7 @@ public class BuildingBehavior : MonoBehaviour
     void Awake()
     {
         numberOfCars = Random.Range(MIN_CAR_NUMBER, MAX_CAR_NUMBER);
+        Debug.Log("Initial car number : "+ numberOfCars);
         //nearestRoadPosition = new Vector3(0, 1000, 0);
         timeOfLastSpawn = Time.time;
         Prefab = Resources.Load<GameObject>("CarWithWheels");
@@ -55,9 +56,13 @@ public class BuildingBehavior : MonoBehaviour
         
         if(type == BuildingType.Commercial)
             return;
+
+        if(numberOfCars == 0)
+            return;
         
         GameObject carInstance = Instantiate(Prefab, nearestRoadPosition, Quaternion.Euler(0, 0, 0));
         CarBehavior carBehavior = carInstance.GetComponent<CarBehavior>();
+        carBehavior.home = this;
         carBehavior.start = nearestRoadPosition;
         try{
             carBehavior.end = gameManager.GetDestination(nearestRoadPosition);
@@ -66,6 +71,7 @@ public class BuildingBehavior : MonoBehaviour
             Debug.Log(e);
             Destroy(carInstance);
         }
+        numberOfCars --;
         
     }
 
@@ -73,4 +79,9 @@ public class BuildingBehavior : MonoBehaviour
         this.nearestRoadPosition = nearestRoadPosition;
         //Debug.Log("Nearest : " + nearestRoadPosition);
     }
+
+    public void AddCar(int nb){
+        numberOfCars += nb;
+    }
+
 }

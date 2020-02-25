@@ -6,7 +6,8 @@ using System;
 public class CarBehavior : MonoBehaviour
 {
 
-    public const int MAX_WAIT_LENGTH = 60; // minutes
+    public const float MIN_SPEED = 0.0005f, MAX_SPEED = 0.0015f;
+    public const int MIN_WAIT_LENGTH = 5, MAX_WAIT_LENGTH = 60; // minutes
     public float ActualSpeed; // max speed in m.s-1
 
     private float Speed;
@@ -15,6 +16,8 @@ public class CarBehavior : MonoBehaviour
 
     private DateTime returnDate;
     private bool standBy;
+
+    public BuildingBehavior home {get; set;}
 
     private TimeBehavior TimeManager;
 
@@ -38,7 +41,7 @@ public class CarBehavior : MonoBehaviour
 
         currentDestination = trip.GetNextNode();
         */
-        ActualSpeed = 0.01f;
+        ActualSpeed = UnityEngine.Random.Range(MIN_SPEED, MAX_SPEED);
         TimeManager = GameObject.FindWithTag("TimeManagerTag").GetComponent<TimeBehavior>();
         start = new Vector3(0, 1000, 0);
         end = new Vector3(0, 1000, 0);
@@ -83,7 +86,7 @@ public class CarBehavior : MonoBehaviour
             else
             {
                 standBy = false;
-                Debug.Log("Trajet RETOUR");
+                //Debug.Log("Trajet RETOUR");
                 gameObject.GetComponent<Renderer>().enabled = true;
                 Vector3 _yModify = transform.position;
                 _yModify.y = 0;
@@ -125,13 +128,14 @@ public class CarBehavior : MonoBehaviour
             transform.position = currentDestination;
             if(trip.isFinal()){
                 if(trip.isReturnTrip){
+                    home.AddCar(1);
                     Destroy(gameObject);
                     return;
                 }
                 standBy = true;
-                Debug.Log("Trajet ALLEE (terminé)");
+                //Debug.Log("Trajet ALLEE (terminé)");
                 System.Random rnd = new System.Random();
-                int minToWait = rnd.Next(5, MAX_WAIT_LENGTH);
+                int minToWait = rnd.Next(MIN_WAIT_LENGTH, MAX_WAIT_LENGTH);
                 returnDate = TimeManager.Date.AddMinutes(minToWait);
                 gameObject.GetComponent<Renderer>().enabled = false; // Makes the car disappear
                 Vector3 _yModify = transform.position;
@@ -145,15 +149,38 @@ public class CarBehavior : MonoBehaviour
             return;
         }
 
+        RaycastHit hit;
+        Ray rayFromCar = new Ray(transform.position, transform.forward); // Direction will be changed anyway
+        float speedRate = 1f; // this rate will make the car slow down if another car is in the way
+        gameObject.layer = 2;
+        int layerMask = 2;
+
         //X is the same for the car and the destination : we move on Z
         if(Math.Abs(carPosition.x - currentDestination.x) < Speed){
             
             //Destination is towards positive Z 
             if(carPosition.z - currentDestination.z < 0){
-                transform.Translate(0, 0, Speed, Space.World);
+                
+                rayFromCar.direction = new Vector3(0, 0, 1);
+                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
+                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
+                    Debug.Log("Hit distance : " + hit.distance);
+                    if(hit.distance < 5f){
+                        speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    }
+                }
+                transform.Translate(0, 0, Speed*speedRate, Space.World);
                 transform.localEulerAngles = new Vector3(90, 0, 90);
             } else {
-                transform.Translate(0, 0, -Speed, Space.World);
+                rayFromCar.direction = new Vector3(0, 0, -1);
+                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
+                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
+                    Debug.Log("Hit distance : " + hit.distance);
+                    if(hit.distance < 5f){
+                        speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    }
+                }
+                transform.Translate(0, 0, -Speed*speedRate, Space.World);
                 transform.localEulerAngles = new Vector3(90, 180, 90);
             }
 
@@ -161,14 +188,33 @@ public class CarBehavior : MonoBehaviour
 
             //Destination is towards positive X
             if(carPosition.x - currentDestination.x < 0){
-                transform.Translate(Speed, 0, 0, Space.World);
+                rayFromCar.direction = new Vector3(1, 0, 0);
+                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
+                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
+                    Debug.Log("Hit distance : " + hit.distance);
+                    if(hit.distance < 5f){
+                        speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    }
+                }
+                transform.Translate(Speed*speedRate, 0, 0, Space.World);
                 transform.localEulerAngles = new Vector3(90, 90, 90);
             } else {
-                transform.Translate(-Speed, 0, 0, Space.World);
+                rayFromCar.direction = new Vector3(-1, 0, 0);
+                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
+                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
+                    Debug.Log("Hit distance : " + hit.distance);
+                    if(hit.distance < 5f){
+                        speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    }
+                }
+                transform.Translate(-Speed*speedRate, 0, 0, Space.World);
                 transform.localEulerAngles = new Vector3(90, -90, 90);
             }
 
         }
+
+        gameObject.layer = 0;
+        
 
     }
 

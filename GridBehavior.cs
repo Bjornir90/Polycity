@@ -24,6 +24,8 @@ public class GridBehavior : MonoBehaviour
     Vector3Int positionOfLastInstantiation;
     int currentAngle;
 
+    private int instancesSinceLastLamp;
+
     void Start()
     {
         //Create a new plane with normal (0,0,1) at the position away from the camera you define in the Inspector. This is the plane that you can click so make sure it is reachable.
@@ -43,6 +45,7 @@ public class GridBehavior : MonoBehaviour
         positionOfLastInstantiation = initPos;
         Vector3Int gridPosition = GetGridIndex(initPos);
         grid.SetCell(gridPosition, new Cell(initPos, Prefab, currentPrefabIsRoad, initPos, gridPosition));
+        instancesSinceLastLamp = 0;
     }
 
     void Update()
@@ -108,6 +111,18 @@ public class GridBehavior : MonoBehaviour
                 } else {
                     grid.CheckAndCreateNode(newObjectPos, gridPosition, true);
                     grid.CheckAndCreateLinks(gridPosition, true);
+
+                    //Instantiate a lamp if none in a 2bloc distance area
+                    if(instancesSinceLastLamp == 4){
+                        GameObject spotLight = Resources.Load<GameObject>("SpotLight");
+                        Vector3 lightPos = new Vector3(newObjectPos.x, newObjectPos.y + 10f, newObjectPos.z);
+                        Instantiate(spotLight, lightPos, spotLight.transform.rotation);
+                        Debug.Log("Index à l'instantiation : " + gridPosition);
+                        grid.GetCell(gridPosition).hasLamp = true;
+                        instancesSinceLastLamp = 0;
+                    } else {
+                        instancesSinceLastLamp ++;
+                    }
                 }
             }
         }
