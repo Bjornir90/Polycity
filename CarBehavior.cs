@@ -45,7 +45,7 @@ public class CarBehavior : MonoBehaviour
         standBy = false;
         currentDestination = new Vector3(0, 1000, 0);
         Speed = ActualSpeed*TimeManager.TimeSpeed;
-        Debug.Log("Vitesse : " + Speed);
+        //Debug.Log("Vitesse : " + Speed);
     }
 
     // Update is called once per frame
@@ -83,9 +83,11 @@ public class CarBehavior : MonoBehaviour
             else
             {
                 standBy = false;
-                Debug.Log("StandBy False");
+                Debug.Log("Trajet RETOUR");
                 gameObject.GetComponent<Renderer>().enabled = true;
-                transform.position.y = 0;
+                Vector3 _yModify = transform.position;
+                _yModify.y = 0;
+                transform.position = _yModify;
             }
         }
 
@@ -111,7 +113,6 @@ public class CarBehavior : MonoBehaviour
 
         if(currentDestination.y == 1000){
             currentDestination = trip.GetNextNode();
-            Debug.Log(currentDestination);
             //throw new Exception(currentDestination.ToString());
             //transform.SetPositionAndRotation(start, Quaternion.Euler(0,0,0));
             transform.position = currentDestination;
@@ -128,12 +129,14 @@ public class CarBehavior : MonoBehaviour
                     return;
                 }
                 standBy = true;
-                Debug.Log("StandBy True");
+                Debug.Log("Trajet ALLEE (terminé)");
                 System.Random rnd = new System.Random();
                 int minToWait = rnd.Next(5, MAX_WAIT_LENGTH);
                 returnDate = TimeManager.Date.AddMinutes(minToWait);
                 gameObject.GetComponent<Renderer>().enabled = false; // Makes the car disappear
-                transform.position.y = 1000;
+                Vector3 _yModify = transform.position;
+                _yModify.y = 1000;
+                transform.position = _yModify;
                 trip = trip.GetReturnTrip();
                 return;
             }
@@ -171,7 +174,7 @@ public class CarBehavior : MonoBehaviour
 
 
     public void CreateTrip(){
-        Debug.Log("Start : " + start + ", End : " + end);
+        //Debug.Log("Start : " + start + ", End : " + end);
         if(trip == null)
             trip = GameObject.FindWithTag("GridManagerTag").GetComponent<GridBehavior>().grid.GetTrip(start, end);
     }

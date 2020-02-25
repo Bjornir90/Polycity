@@ -30,9 +30,9 @@ public class GameBehavior : MonoBehaviour
         Vector3 destination = new Vector3(0,1000,0);
         foreach(Building building in buildings){
             if(building.nearestRoadPosition != currentNearestRoadPosition){
-                Debug.Log("Destination ? " + building.nearestRoadPosition);
+                //Debug.Log("Destination ? " + building.nearestRoadPosition);
                 float current = Random.Range(0f, 1f)*building.interest;
-                Debug.Log("Interest : " + current);
+                //Debug.Log("Interest : " + current);
                 if(current > currentMax){
                     currentMax = current;
                     destination = building.nearestRoadPosition;

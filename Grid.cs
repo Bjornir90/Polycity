@@ -154,7 +154,14 @@ public class Grid {
     private void CreateLink(Node node1, Node node2){
         PathFinder pathFinder = GameObject.FindWithTag(RoadManagerTag).GetComponent<PathFinder>();
         pathFinder.CreateLink(node1, node2);
-        Debug.Log("Created link between : (" +node1.GridPosition.x + ", " + node1.GridPosition.z + ") and ("+node2.GridPosition.x + ", " + node2.GridPosition.z + ")");
+        //Debug.Log("Created link between : (" +node1.GridPosition.x + ", " + node1.GridPosition.z + ") and ("+node2.GridPosition.x + ", " + node2.GridPosition.z + ")");
+    }
+
+    private void RemoveNode(Node node){
+        PathFinder pathFinder = GameObject.FindWithTag(RoadManagerTag).GetComponent<PathFinder>();
+        pathFinder.nodes.Remove(node);
+        Vector3Int gridP = new Vector3Int((int) node.GridPosition.x, (int) node.GridPosition.y, (int) node.GridPosition.z);
+        GetCell(gridP).Node = null;
     }
 
     public Trip GetTrip(Vector3 start, Vector3 end){
@@ -187,6 +194,8 @@ public class Grid {
 
         Trip res = null;
 
+        int NodesNb = pathFinder.nodes.Count;
+
         if(startNode!=null){
 
             if(endNode!=null){
@@ -208,7 +217,7 @@ public class Grid {
                     }
                 }
 
-                pathFinder.nodes.Remove(endNode);
+                RemoveNode(endNode);
 
             }
         }else{
@@ -226,6 +235,7 @@ public class Grid {
 
                 CreateNode(end, endGridIndex);
                 endNode = GetCell(endGridIndex).Node;
+                endNodes = GetLinkedNodes(endGridIndex);
 
                 for(int i =0; i<endNodes.Count; i++){
                     CreateLink(endNodes[i], endNode);
@@ -239,7 +249,7 @@ public class Grid {
                     }
                 }
 
-                pathFinder.nodes.Remove(endNode);
+                RemoveNode(endNode);
             }
 
             foreach(Edge link in startNode.Links){
@@ -247,9 +257,10 @@ public class Grid {
                         startNodes[i].Links.Remove(link);
                     }
                 }
-            pathFinder.nodes.Remove(startNode);
+            RemoveNode(startNode);
 
         }
+        Debug.Log("Start still in nodes ? " + pathFinder.nodes.Contains(startNode));
         return res;
     }
 

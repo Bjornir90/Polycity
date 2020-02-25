@@ -15,7 +15,7 @@ public class PathFinder : MonoBehaviour
     void Start()
     {
         
-        Debug.Log("Start");
+        //Debug.Log("Start");
         nodes = new List<Node>();
         /*
         Vector3 pos = new Vector3(0, 0, 0);
@@ -101,6 +101,9 @@ public class PathFinder : MonoBehaviour
 
         int tourNb = 0;
 
+        Debug.Log("Start in PathFinder.nodes ? " + nodes.Contains(start));
+        Debug.Log("Start pos : " + start.Position);
+
         weights[start] = 0;
         while (!ContainsAll(nodes, processed))
         {
@@ -122,7 +125,7 @@ public class PathFinder : MonoBehaviour
             processed.Add(closest);
 
             if(closest == null){
-                throw new Exception("No node closest available");
+                throw new Exception("No node closest available (tourNb : " + tourNb + ")");
             }
 
             foreach(Edge edge in closest.Links)

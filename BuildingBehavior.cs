@@ -64,12 +64,13 @@ public class BuildingBehavior : MonoBehaviour
             carBehavior.CreateTrip();
         } catch(System.IndexOutOfRangeException e){ 
             Debug.Log(e);
+            Destroy(carInstance);
         }
         
     }
 
     public void SetNearestRoadPosition(Vector3 nearestRoadPosition){
         this.nearestRoadPosition = nearestRoadPosition;
-        Debug.Log("Nearest : " + nearestRoadPosition);
+        //Debug.Log("Nearest : " + nearestRoadPosition);
     }
 }

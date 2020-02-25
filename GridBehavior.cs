@@ -38,6 +38,11 @@ public class GridBehavior : MonoBehaviour
         Cursor = Instantiate(ListPrefab[indexPrefab], new Vector3(0, 1000, 0), Quaternion.Euler(0, 0, 0));
         Prefab = ListPrefab[indexPrefab];
         gameManager = GameObject.FindWithTag("GameManagerTag").GetComponent<GameBehavior>();
+        Vector3Int initPos = new Vector3Int(-55,0,45);
+        GameObject PrefabInstance = Instantiate(Prefab, initPos, Quaternion.Euler(0, currentAngle, 0));
+        positionOfLastInstantiation = initPos;
+        Vector3Int gridPosition = GetGridIndex(initPos);
+        grid.SetCell(gridPosition, new Cell(initPos, Prefab, currentPrefabIsRoad, initPos, gridPosition));
     }
 
     void Update()
@@ -60,44 +65,49 @@ public class GridBehavior : MonoBehaviour
 
             //Move your cube GameObject to the point where you clicked
             Cursor.transform.position = newObjectPos;
+            Vector3Int gridPosition = GetGridIndex(newObjectPos);
+
+            bool nextToRoad = false;
+            foreach(Vector3Int neighbor in GetNeighborhood(gridPosition)){
+                if(grid.IsRoad(neighbor)){
+                    nextToRoad = true;
+                    break;
+                }
+            }
+
+            var cursorRenderer = Cursor.GetComponent<Renderer>();
+            cursorRenderer.enabled = true;
+            if(grid.GetCell(gridPosition) != null){
+                cursorRenderer.enabled = false;
+                return;
+            } else if(!nextToRoad){
+                cursorRenderer.material.SetColor("_Color", Color.red);
+            } else {
+                cursorRenderer.material.SetColor("_Color", Color.white);
+            }
 
             //Detect when there is a mouse click
-            if (Input.GetMouseButton(0) && !positionOfLastInstantiation.Equals(newObjectPos))
+            if (Input.GetMouseButton(0) && !positionOfLastInstantiation.Equals(newObjectPos) && nextToRoad)
             {
-                if(grid.GetCell(newObjectPos) == null){
 
-                    //Debug.Log("Clicked on "+hitPoint+" grid : "+gridPosition);
-                    Vector3Int gridPosition = GetGridIndex(newObjectPos);
-
-                    if(!currentPrefabIsRoad){
-                        for(int i=-1; i<2; i+=2){
-                            Vector3Int neighborX = gridPosition;
-                            Vector3Int neighborZ = gridPosition;
-                            Vector3 nearestRoadPosition;
-                            neighborX.x += i;
-                            neighborZ.z += i;
-                            if(grid.IsRoad(neighborX) || grid.IsRoad(neighborZ)){
-                                GameObject PrefabInstance = Instantiate(Prefab, newObjectPos, Quaternion.Euler(0, currentAngle, 0));
-                                BuildingBehavior prefabBehavior = PrefabInstance.GetComponent<BuildingBehavior>();
-                                if(grid.IsRoad(neighborX))
-                                    nearestRoadPosition = GridPositionToPosition(neighborX);
-                                else
-                                    nearestRoadPosition = GridPositionToPosition(neighborZ);
-                                prefabBehavior.SetNearestRoadPosition(nearestRoadPosition);
-                                gameManager.AddBuilding(nearestRoadPosition, prefabBehavior.type, prefabBehavior.interest);
-                                positionOfLastInstantiation = newObjectPos;
-                                grid.SetCell(gridPosition, new Cell(newObjectPos, Prefab, currentPrefabIsRoad, newObjectPos, gridPosition));
-                                break;
-                            }
+                GameObject PrefabInstance = Instantiate(Prefab, newObjectPos, Quaternion.Euler(0, currentAngle, 0));
+                positionOfLastInstantiation = newObjectPos;
+                grid.SetCell(gridPosition, new Cell(newObjectPos, Prefab, currentPrefabIsRoad, newObjectPos, gridPosition));
+                //Debug.Log("Clicked on "+hitPoint+" grid : "+gridPosition);
+                if(!currentPrefabIsRoad){
+                    Vector3 nearestRoadPosition = new Vector3(0, 0, 0); // Non nullable gnnnnneeee
+                    BuildingBehavior prefabBehavior = PrefabInstance.GetComponent<BuildingBehavior>();
+                    foreach(Vector3Int neighbor in GetNeighborhood(gridPosition	)){
+                        if(grid.IsRoad(neighbor)){
+                            nearestRoadPosition = GridPositionToPosition(neighbor);
+                            break;
                         }
-                    } else {
-                        Instantiate(Prefab, newObjectPos, Quaternion.Euler(0, currentAngle, 0));
-                        positionOfLastInstantiation = newObjectPos;
-                        grid.SetCell(gridPosition, new Cell(newObjectPos, Prefab, currentPrefabIsRoad, newObjectPos, gridPosition));
-                        grid.CheckAndCreateNode(newObjectPos, gridPosition, true);
-                        grid.CheckAndCreateLinks(gridPosition, true);
                     }
-
+                    prefabBehavior.SetNearestRoadPosition(nearestRoadPosition);
+                    gameManager.AddBuilding(nearestRoadPosition, prefabBehavior.type, prefabBehavior.interest);
+                } else {
+                    grid.CheckAndCreateNode(newObjectPos, gridPosition, true);
+                    grid.CheckAndCreateLinks(gridPosition, true);
                 }
             }
         }
@@ -133,6 +143,20 @@ public class GridBehavior : MonoBehaviour
         Prefab = ListPrefab[indexPrefab];
         Destroy(Cursor);
         Cursor = Instantiate(ListPrefab[indexPrefab], new Vector3(0, 1000, 0), Quaternion.Euler(0, 0, 0));
+    }
+
+    private List<Vector3Int> GetNeighborhood(Vector3Int gridPosition){
+        List<Vector3Int> res = new List<Vector3Int>();
+        for(int i=-1; i<2; i+=2){
+            Vector3Int neighborX = gridPosition;
+            Vector3Int neighborZ = gridPosition;
+            Vector3 nearestRoadPosition;
+            neighborX.x += i;
+            neighborZ.z += i;
+            res.Add(neighborX);
+            res.Add(neighborZ);
+        }
+        return res;
     }
 
     public static Vector3Int GetGridIndex(Vector3 position){
