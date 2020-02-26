@@ -10,8 +10,8 @@ public class SpotLightBehavior : MonoBehaviour
     void Start()
     {
         cellGridPosition = GridBehavior.GetGridIndex(transform.position);
-        Debug.Log("Position réelle : " + transform.position);
-        Debug.Log("Index de la lampe : " + cellGridPosition);
+        //Debug.Log("Position réelle : " + transform.position);
+        //Debug.Log("Index de la lampe : " + cellGridPosition);
     }
 
     // Update is called once per frame

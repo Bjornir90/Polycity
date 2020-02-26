@@ -6,7 +6,7 @@ using System;
 public class CarBehavior : MonoBehaviour
 {
 
-    public const float MIN_SPEED = 0.0005f, MAX_SPEED = 0.0015f;
+    public const float MIN_SPEED = 0.5f, MAX_SPEED = 1.5f;
     public const int MIN_WAIT_LENGTH = 5, MAX_WAIT_LENGTH = 60; // minutes
     public float ActualSpeed; // max speed in m.s-1
 
@@ -41,7 +41,7 @@ public class CarBehavior : MonoBehaviour
 
         currentDestination = trip.GetNextNode();
         */
-        ActualSpeed = UnityEngine.Random.Range(MIN_SPEED, MAX_SPEED);
+        ActualSpeed = UnityEngine.Random.Range(MIN_SPEED/1000f, MAX_SPEED/1000f);
         TimeManager = GameObject.FindWithTag("TimeManagerTag").GetComponent<TimeBehavior>();
         start = new Vector3(0, 1000, 0);
         end = new Vector3(0, 1000, 0);
@@ -106,7 +106,7 @@ public class CarBehavior : MonoBehaviour
                 continue;
             }
 
-            Debug.DrawLine(previousPosition, node, Color.red, trip.Length);
+            //Debug.DrawLine(previousPosition, node, Color.red, trip.Length);
             previousPosition = node;
 
         }
@@ -150,34 +150,37 @@ public class CarBehavior : MonoBehaviour
         }
 
         RaycastHit hit;
-        Ray rayFromCar = new Ray(transform.position, transform.forward); // Direction will be changed anyway
+        Vector3 local = new Vector3(0, -10, 0);
+        Ray rayFromCar = new Ray(transform.TransformPoint(local), transform.forward); // Direction will be changed anyway
         float speedRate = 1f; // this rate will make the car slow down if another car is in the way
-        gameObject.layer = 2;
-        int layerMask = 2;
+        int layerMask = 1 << 0;
 
         //X is the same for the car and the destination : we move on Z
         if(Math.Abs(carPosition.x - currentDestination.x) < Speed){
             
             //Destination is towards positive Z 
             if(carPosition.z - currentDestination.z < 0){
-                
                 rayFromCar.direction = new Vector3(0, 0, 1);
-                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
-                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
-                    Debug.Log("Hit distance : " + hit.distance);
+                //Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue);
+                if(Physics.Raycast(rayFromCar, out hit, 5f, layerMask)){
+                    //Debug.Log("Hit distance : " + hit.distance);
                     if(hit.distance < 5f){
                         speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    } else if(hit.distance < 0.01f){
+                        speedRate = 0f;
                     }
                 }
                 transform.Translate(0, 0, Speed*speedRate, Space.World);
                 transform.localEulerAngles = new Vector3(90, 0, 90);
             } else {
                 rayFromCar.direction = new Vector3(0, 0, -1);
-                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
-                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
-                    Debug.Log("Hit distance : " + hit.distance);
+                //Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue);
+                if(Physics.Raycast(rayFromCar, out hit, 5f, layerMask)){
+                    //Debug.Log("Hit distance : " + hit.distance);
                     if(hit.distance < 5f){
                         speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    } else if(hit.distance < 0.01f){
+                        speedRate = 0f;
                     }
                 }
                 transform.Translate(0, 0, -Speed*speedRate, Space.World);
@@ -189,22 +192,26 @@ public class CarBehavior : MonoBehaviour
             //Destination is towards positive X
             if(carPosition.x - currentDestination.x < 0){
                 rayFromCar.direction = new Vector3(1, 0, 0);
-                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
-                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
-                    Debug.Log("Hit distance : " + hit.distance);
+                //Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue);
+                if(Physics.Raycast(rayFromCar, out hit, 5f, layerMask)){
+                    //Debug.Log("Hit distance : " + hit.distance);
                     if(hit.distance < 5f){
                         speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    } else if(hit.distance < 0.01f){
+                        speedRate = 0f;
                     }
                 }
                 transform.Translate(Speed*speedRate, 0, 0, Space.World);
                 transform.localEulerAngles = new Vector3(90, 90, 90);
             } else {
                 rayFromCar.direction = new Vector3(-1, 0, 0);
-                Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue, 10);
-                if(Physics.Raycast(rayFromCar, out hit, Mathf.Infinity, layerMask)){
-                    Debug.Log("Hit distance : " + hit.distance);
+                //Debug.DrawRay(rayFromCar.origin, rayFromCar.direction * 10, Color.blue);
+                if(Physics.Raycast(rayFromCar, out hit, 5f, layerMask)){
+                    //Debug.Log("Hit distance : " + hit.distance);
                     if(hit.distance < 5f){
                         speedRate = Math.Max(0f, 0.8f + (hit.distance-5f)/5f);
+                    } else if(hit.distance < 0.01f){
+                        speedRate = 0f;
                     }
                 }
                 transform.Translate(-Speed*speedRate, 0, 0, Space.World);
@@ -212,8 +219,6 @@ public class CarBehavior : MonoBehaviour
             }
 
         }
-
-        gameObject.layer = 0;
         
 
     }

@@ -101,8 +101,8 @@ public class PathFinder : MonoBehaviour
 
         int tourNb = 0;
 
-        Debug.Log("Start in PathFinder.nodes ? " + nodes.Contains(start));
-        Debug.Log("Start pos : " + start.Position);
+        //Debug.Log("Start in PathFinder.nodes ? " + nodes.Contains(start));
+        //Debug.Log("Start pos : " + start.Position);
 
         weights[start] = 0;
         while (!ContainsAll(nodes, processed))

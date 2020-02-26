@@ -13,7 +13,7 @@ public class TimeBehavior: MonoBehaviour
     void Start()
     {
         Date = new DateTime(1984, 1, 1, 0, 0, 0);
-        TimeSpeed = 400;
+        TimeSpeed = 600;
     }
 
     void Update()
@@ -21,6 +21,7 @@ public class TimeBehavior: MonoBehaviour
         int previousMin = Date.Minute;
         Date = Date.AddMilliseconds(TimeSpeed/0.06);
         updateSunlight();
+        updateSunDirection();
     }
 
     void updateSunlight(){
@@ -46,5 +47,13 @@ public class TimeBehavior: MonoBehaviour
             rate = dayRate - totalMinutes/240f * (dayRate - nightRate);
             sunLight.intensity = rate;
         }
+    }
+
+    void updateSunDirection(){
+        var sun = GameObject.FindWithTag("MainLightTag");
+        float totalMinutes = (Date.Hour - 12) * 60 + Date.Minute;
+        float angle = totalMinutes/1440f * 170f + 90f;
+        Vector3 rotation = new Vector3(angle, -30, 0);
+        sun.transform.localEulerAngles = rotation;
     }
 }

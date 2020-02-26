@@ -117,7 +117,7 @@ public class GridBehavior : MonoBehaviour
                         GameObject spotLight = Resources.Load<GameObject>("SpotLight");
                         Vector3 lightPos = new Vector3(newObjectPos.x, newObjectPos.y + 10f, newObjectPos.z);
                         Instantiate(spotLight, lightPos, spotLight.transform.rotation);
-                        Debug.Log("Index à l'instantiation : " + gridPosition);
+                        //Debug.Log("Index à l'instantiation : " + gridPosition);
                         grid.GetCell(gridPosition).hasLamp = true;
                         instancesSinceLastLamp = 0;
                     } else {

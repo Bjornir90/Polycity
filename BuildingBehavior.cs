@@ -10,6 +10,8 @@ public class BuildingBehavior : MonoBehaviour
 
     public const int MAX_RESIDENTIAL_INTEREST = 5, MAX_COMMERCIAL_INTEREST = 40;
 
+    private bool collision;
+
     public BuildingType type;
 
     public int interest {get; set;}
@@ -27,7 +29,7 @@ public class BuildingBehavior : MonoBehaviour
     void Awake()
     {
         numberOfCars = Random.Range(MIN_CAR_NUMBER, MAX_CAR_NUMBER);
-        Debug.Log("Initial car number : "+ numberOfCars);
+        //Debug.Log("Initial car number : "+ numberOfCars);
         //nearestRoadPosition = new Vector3(0, 1000, 0);
         timeOfLastSpawn = Time.time;
         Prefab = Resources.Load<GameObject>("CarWithWheels");
@@ -59,6 +61,11 @@ public class BuildingBehavior : MonoBehaviour
 
         if(numberOfCars == 0)
             return;
+
+        
+
+        if(collision)
+            return;
         
         GameObject carInstance = Instantiate(Prefab, nearestRoadPosition, Quaternion.Euler(0, 0, 0));
         CarBehavior carBehavior = carInstance.GetComponent<CarBehavior>();
@@ -75,9 +82,33 @@ public class BuildingBehavior : MonoBehaviour
         
     }
 
+    void onCollisionEnter(Collision collision){
+        this.collision = true;
+    }
+
+    void onCollisionExit(Collision collision){
+        this.collision = false;
+    }
+
+    /* void OnDrawGizmos(){
+        Gizmos.color = new Color(1, 0, 0, 1f);
+        BoxCollider collider = gameObject.GetComponent<BoxCollider>();
+        Debug.Log("GIZMOS | collider center : " + collider.center + ", collider size : " + collider.size);
+        Gizmos.DrawCube(collider.center, collider.size);
+    } */
+
     public void SetNearestRoadPosition(Vector3 nearestRoadPosition){
         this.nearestRoadPosition = nearestRoadPosition;
         //Debug.Log("Nearest : " + nearestRoadPosition);
+
+        Vector3 size = new Vector3(20, 10, 20);
+        Vector3 position = nearestRoadPosition;
+        position.y += 6;
+        BoxCollider collider = gameObject.GetComponent<BoxCollider>();
+        collider.center = transform.InverseTransformPoint(position);
+        collider.size = size;
+        collider.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        Debug.Log("collider center : " + collider.center + ", collider size : " + collider.size);
     }
 
     public void AddCar(int nb){

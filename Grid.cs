@@ -260,7 +260,7 @@ public class Grid {
             RemoveNode(startNode);
 
         }
-        Debug.Log("Start still in nodes ? " + pathFinder.nodes.Contains(startNode));
+        //Debug.Log("Start still in nodes ? " + pathFinder.nodes.Contains(startNode));
         return res;
     }
 

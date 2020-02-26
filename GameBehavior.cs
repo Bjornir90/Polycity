@@ -41,7 +41,7 @@ public class GameBehavior : MonoBehaviour
         }
         if(destination == new Vector3(0, 1000, 0))
             throw new System.IndexOutOfRangeException("Aucune destination possible !");
-        Debug.Log("Destination : " + destination);
+        //Debug.Log("Destination : " + destination);
         return destination;
     }
 }
